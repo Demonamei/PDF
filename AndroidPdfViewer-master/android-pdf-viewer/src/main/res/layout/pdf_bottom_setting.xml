@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_page_num"
+        android:layout_width="100dp"
+        android:layout_height="30dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_pdf_page"
+        android:gravity="center"
+        android:text="页码3/43"
+        android:textColor="#fff"
+        android:textSize="12sp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_marginTop="10dp"
+        android:background="#a333">
+
+        <TextView
+            android:id="@+id/tv_previous_page"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="7.5dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="7.5dp"
+            android:paddingLeft="7.5dp"
+            android:paddingTop="10dp"
+            android:paddingRight="7.5dp"
+            android:paddingBottom="10dp"
+            android:text="上一页"
+            android:textColor="#fff"
+            android:textSize="12sp" />
+
+        <com.github.barteksc.pdfviewer.EasyProgress
+            android:id="@+id/pdf_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/tv_next_page"
+            android:layout_toRightOf="@id/tv_previous_page" />
+
+        <TextView
+            android:id="@+id/tv_next_page"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="7.5dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="7.5dp"
+            android:paddingLeft="7.5dp"
+            android:paddingTop="10dp"
+            android:paddingRight="7.5dp"
+            android:paddingBottom="10dp"
+            android:text="下一页"
+            android:textColor="#fff"
+            android:textSize="12sp" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#a333"
+        android:gravity="bottom">
+
+        <TextView
+            android:id="@+id/tv_pdf_collect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableTop="@drawable/pdf_collect"
+            android:drawablePadding="5dp"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:paddingBottom="5dp"
+            android:text="收藏"
+            android:textColor="#fff"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_pdf_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:drawableTop="@drawable/pdf_label"
+            android:drawablePadding="5dp"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:paddingBottom="5dp"
+            android:text="标签"
+            android:textColor="#fff"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_pdf_setting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:drawableTop="@drawable/pdf_setting"
+            android:drawablePadding="5dp"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:paddingBottom="5dp"
+            android:text="设置"
+            android:textColor="#fff"
+            android:textSize="12sp" />
+    </RelativeLayout>
+</LinearLayout>

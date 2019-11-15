@@ -6,8 +6,11 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -30,7 +33,6 @@ public class DefaultScrollHandle extends RelativeLayout implements ScrollHandle 
     private boolean inverted;
     private PDFView pdfView;
     private float currentPos;
-
     private Handler handler = new Handler();
     private Runnable hidePageScrollerRunnable = new Runnable() {
         @Override
@@ -38,6 +40,16 @@ public class DefaultScrollHandle extends RelativeLayout implements ScrollHandle 
             hide();
         }
     };
+
+    public LinearLayout getLinearLayout() {
+        return linearLayout;
+    }
+
+    public void setLinearLayout(LinearLayout linearLayout) {
+        this.linearLayout = linearLayout;
+    }
+
+    private LinearLayout linearLayout;//左上角按钮容器
 
     public DefaultScrollHandle(Context context) {
         this(context, false);
@@ -97,8 +109,50 @@ public class DefaultScrollHandle extends RelativeLayout implements ScrollHandle 
 
         lp.addRule(align);
         pdfView.addView(this, lp);
-
+//添加线性布局于左上角
+        linearLayout = new LinearLayout(context);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        linearLayout.setPadding(0, Util.getDP(context, 40), 0, 0);
+        LayoutParams lp1 = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        pdfView.addView(linearLayout, lp1);
+        //linearLayout添加目录按钮
+        TextView textViewCatalogue = new TextView(context);
+        textViewCatalogue.setBackgroundResource(R.drawable.pdf_left_button);
+        textViewCatalogue.setText("目录");
+        textViewCatalogue.setTextColor(Color.WHITE);
+        textViewCatalogue.setGravity(Gravity.CENTER_VERTICAL);
+        textViewCatalogue.setCompoundDrawablePadding(Util.getDP(context, 10));
+        Drawable drawable = getResources().getDrawable(R.drawable.pdf_catalogue);
+        drawable.setBounds(Util.getDP(context, 7), Util.getDP(context, 0), Util.getDP(context, 22), Util.getDP(context, 12));
+        drawable.setBounds(Util.getDP(context, 7), Util.getDP(context, 0), Util.getDP(context, 22), Util.getDP(context, 12));
+        textViewCatalogue.setCompoundDrawables(drawable, null, null, null);
+        textViewCatalogue.setHeight(Util.getDP(context, 30));
+        textViewCatalogue.setWidth(Util.getDP(context, 65));
+        LinearLayout.LayoutParams llparam1 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        llparam1.setMargins(0, Util.getDP(context, 10), 0, 0);
+        linearLayout.addView(textViewCatalogue, llparam1);
+        //添加批注按钮
+        TextView textViewAnnotate = new TextView(context);
+        textViewAnnotate.setBackgroundResource(R.drawable.pdf_left_button);
+        textViewAnnotate.setText("批注");
+        textViewAnnotate.setTextColor(Color.WHITE);
+        textViewAnnotate.setGravity(Gravity.CENTER_VERTICAL);
+        textViewAnnotate.setCompoundDrawablePadding(Util.getDP(context, 10));
+        Drawable drawable1 = getResources().getDrawable(R.drawable.pdf_annotate);
+        drawable1.setBounds(Util.getDP(context, 7), Util.getDP(context, 0), Util.getDP(context, 22), Util.getDP(context, 12));
+        drawable1.setBounds(Util.getDP(context, 7), Util.getDP(context, 0), Util.getDP(context, 22), Util.getDP(context, 12));
+        textViewAnnotate.setCompoundDrawables(drawable1, null, null, null);
+        textViewAnnotate.setHeight(Util.getDP(context, 30));
+        textViewAnnotate.setWidth(Util.getDP(context, 65));
+        LinearLayout.LayoutParams llparam2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        llparam2.setMargins(0, Util.getDP(context, 10), 0, 0);
+        linearLayout.addView(textViewAnnotate, llparam2);
         this.pdfView = pdfView;
+        //添加bottom
+        View view = inflate(context, R.layout.pdf_bottom_setting, null);
+        LayoutParams tvlp1 = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        tvlp1.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+        pdfView.addView(view, tvlp1);
     }
 
     @Override
@@ -184,6 +238,7 @@ public class DefaultScrollHandle extends RelativeLayout implements ScrollHandle 
     @Override
     public void show() {
         setVisibility(VISIBLE);
+
     }
 
     @Override

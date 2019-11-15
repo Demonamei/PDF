@@ -34,6 +34,7 @@ import android.util.Pair;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -97,6 +98,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private int clickInsertButtonOffsetHeight = 0;
     private int labelPointWidth = 0;
     private BubblePopupWindow leftTopWindow;
+    private DefaultScrollHandle defaultScrollHandle;
 
     @OptionsItem(R.id.pickFile)
     void pickFile() {
@@ -156,15 +158,15 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         clickInsertButtonOffsetHeight = Util.getDP(PDFViewActivity.this, 35);
         labelPointWidth = Util.getDP(PDFViewActivity.this, 20);
         pdfFileName = assetFileName;
-
+        defaultScrollHandle = new DefaultScrollHandle(this);
         pdfView.fromAsset(SAMPLE_FILE)
                 .defaultPage(pageNumber)
-                .swipeHorizontal(true)
+                .swipeHorizontal(false)
                 .pageFitPolicy(FitPolicy.HEIGHT)
                 .onPageChange(this)
                 .enableAnnotationRendering(true)
                 .onLoad(this)
-                .scrollHandle(new DefaultScrollHandle(this))
+                .scrollHandle(defaultScrollHandle)
                 .spacing(10) // in dp
                 .onPageError(this)
                 .pageFitPolicy(FitPolicy.BOTH)
@@ -178,8 +180,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .onPageScroll(new OnPageScrollListener() {
                     @Override
                     public void onPageScrolled(int page, float positionOffset) {
-
-
+                        defaultScrollHandle.getLinearLayout().setVisibility(View.GONE);
                     }
                 })
                 .onRender(new OnRenderListener() {
@@ -226,7 +227,6 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                         @Override
                         public boolean onTouch(View view, MotionEvent motionEvent) {
                             if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-
                                 insertPointToHashMap(labelPoint, labelPointWidth / 2, labelPointWidth / 2);
 
                             }
@@ -262,20 +262,31 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         }).onTap(new OnTapListener() {
             @Override
             public boolean onTap(MotionEvent e) {
+
                 Pair i = checkInLabelResf(e);
-                final View view = new View(PDFViewActivity.this);
-                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(1, 1);
-                lp.setMargins(0, 0, 0, 0);
-                pdfView.addView(view, lp);
-                view.setX(e.getX());
-                view.setY(e.getY());
-                Logger.t("tangbin25").e("tab");
-                leftTopWindow = new BubblePopupWindow(PDFViewActivity.this);
-                View bubbleView = PDFViewActivity.this.getLayoutInflater().inflate(R.layout.layout_popup_view, null);
-                TextView tvContent = (TextView) bubbleView.findViewById(R.id.tvContent);
-                tvContent.setText("HelloWorld");
-                leftTopWindow.setBubbleView(bubbleView);
-                leftTopWindow.show(view, Gravity.TOP);
+                if (i != null) {
+                    final View view = new View(PDFViewActivity.this);
+                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(1, 1);
+                    lp.setMargins(0, 0, 0, 0);
+                    pdfView.addView(view, lp);
+                    view.setX(e.getX());
+                    view.setY(e.getY());
+                    Logger.t("tangbin25").e("tab");
+                    leftTopWindow = new BubblePopupWindow(PDFViewActivity.this);
+                    View bubbleView = PDFViewActivity.this.getLayoutInflater().inflate(R.layout.layout_popup_view, null);
+                    TextView tvContent = (TextView) bubbleView.findViewById(R.id.tvContent);
+                    tvContent.setText("HelloWorld");
+                    leftTopWindow.setBubbleView(bubbleView);
+                    leftTopWindow.show(view, Gravity.TOP);
+                } else {
+                    LinearLayout linearLayout = defaultScrollHandle.getLinearLayout();
+                    if (linearLayout.getVisibility() == View.VISIBLE) {
+                        linearLayout.setVisibility(View.GONE);
+                    } else {
+                        linearLayout.setVisibility(View.VISIBLE);
+                    }
+                }
+
                 return false;
             }
         })
@@ -355,19 +366,33 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         }
         float offset = currentPage == 0 ? 0 : -pdfView.pdfFile.getPageOffset(currentPage, pdfView.getZoom());//当前页置顶时偏移量
         SizeF sizeF = pdfView.getPageSize(currentPage);
-        float leftWhiteStrip = (pdfView.getWidth() - sizeF.getWidth()) * pdfView.getZoom() / 2;
-        float offsetY = pdfView.getCurrentYOffset() - offset;
-        for (int i = 0; i < pdfLabelPoints.size(); i++) {
-            float xOffset = pdfLabelPoints.get(i).getWidth() * sizeF.getWidth() * pdfView.getZoom() + leftWhiteStrip;
-            float yOffset = pdfLabelPoints.get(i).getHeight() * sizeF.getHeight() * pdfView.getZoom() - offset;
-            Logger.t("tangbin21").e("x" + xOffset + "y" + yOffset);
-            if (Math.abs(e.getX() - pdfView.getCurrentXOffset() - xOffset) < 60 && Math.abs(e.getY() - pdfView.getCurrentYOffset() - yOffset) < 60) {
-                Logger.t("tangbin21").e("范围类");
+        if (pdfView.isSwipeVertical()) {
+            float leftWhiteStrip = (pdfView.getWidth() - sizeF.getWidth()) * pdfView.getZoom() / 2;
+            for (int i = 0; i < pdfLabelPoints.size(); i++) {
+                float xOffset = pdfLabelPoints.get(i).getWidth() * sizeF.getWidth() * pdfView.getZoom() + leftWhiteStrip;
+                float yOffset = pdfLabelPoints.get(i).getHeight() * sizeF.getHeight() * pdfView.getZoom() - offset;
+                Logger.t("tangbin21").e("x" + xOffset + "y" + yOffset);
+                if (Math.abs(e.getX() - pdfView.getCurrentXOffset() - xOffset) < 60 && Math.abs(e.getY() - pdfView.getCurrentYOffset() - yOffset) < 60) {
+                    Logger.t("tangbin21").e("范围类");
 
-                return i;
+                    return i;
+                }
+                Logger.t("tangbin21").e("Math.abs(e.getX() + xOffset):" + Math.abs(e.getX() + xOffset) + " Math.abs(e.getY() + yOffset)：" + Math.abs(e.getY() + yOffset));
             }
-            Logger.t("tangbin21").e("Math.abs(e.getX() + xOffset):" + Math.abs(e.getX() + xOffset) + " Math.abs(e.getY() + yOffset)：" + Math.abs(e.getY() + yOffset));
+        } else {
+            float topWhiteStrip = (pdfView.pdfFile.getMaxPageHeight() - sizeF.getHeight()) * pdfView.getZoom() / 2;
+            for (int i = 0; i < pdfLabelPoints.size(); i++) {
+                float xOffset = pdfLabelPoints.get(i).getWidth() * sizeF.getWidth() * pdfView.getZoom() - offset;
+                float yOffset = pdfLabelPoints.get(i).getHeight() * sizeF.getHeight() * pdfView.getZoom() + topWhiteStrip;
+                if (Math.abs(e.getX() - pdfView.getCurrentXOffset() - xOffset) < 60 && Math.abs(e.getY() - pdfView.getCurrentYOffset() - yOffset) < 60) {
+                    Logger.t("tangbin21").e("范围类");
+
+                    return i;
+                }
+            }
         }
+
+
         return -1;
 
 
@@ -376,44 +401,29 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private void drawLabelPoint(PdfLabelPoint poin, Canvas canvas, float pageWidth, float pageHeight, int displayedPage) {
         float screenXOffset;
         float screenYOffset;
-        float leftWhiteStrip;
-        float topWhiteStrip = 0;
-        if (pdfView.isSwipeVertical()) {
-            leftWhiteStrip = (pdfView.getWidth() * pdfView.getZoom() - pageWidth) / 2 + pdfView.getFirstXoffset();
-            screenXOffset = poin.getWidth() * pageWidth + leftWhiteStrip;
-            screenYOffset = poin.getHeight() * pageHeight;
-        } else {
-            topWhiteStrip = (pdfView.getHeight() - pdfView.pdfFile.getPageSize(displayedPage).getHeight()) / 2;
-            screenXOffset = poin.getWidth() * pageWidth;
-            screenYOffset = poin.getHeight() * pageHeight + topWhiteStrip;
-        }
-
-        Logger.t("tangbin30").e("canvans.getheight:" + canvas.getHeight());
-        Logger.t("tangbin30").e("pdfView.getHeight() * pdfView.getZoom():" + pdfView.getHeight() * pdfView.getZoom());
-        Logger.t("tangbin30").e("pdfView.getFirstYoffsett()" + pdfView.getFirstYoffsett());
-
         Bitmap mBitmap = BitmapFactory.decodeResource(PDFViewActivity.this.getResources(), R.drawable.pdf_label_point_icon);
         // 指定图片绘制区域(左上角的四分之一)
         Rect src = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
-        // 指定图片在屏幕上显示的区域(原图大小)
-//        Rect dst = new Rect((int) screenXOffset - mBitmap.getWidth() / 2, (int) screenYOffset - mBitmap.getWidth() / 2, (int) screenXOffset + mBitmap.getWidth() / 2, (int) screenYOffset + mBitmap.getHeight() / 2);
+        Rect dst = null;
+        if (pdfView.isSwipeVertical()) {
+            float canvasLeftOffset = (pdfView.pdfFile.getMaxPageWidth() - pdfView.pdfFile.getPageSize(displayedPage).getWidth()) / 2;
+//            float leftWhiteStrip = (pdfView.getWidth() * pdfView.getZoom() - pageWidth) / 2 + pdfView.getFirstXoffset();
+            screenXOffset = poin.getWidth() * pageWidth + canvasLeftOffset * pdfView.getZoom();
+            screenYOffset = poin.getHeight() * pageHeight;
+            dst = new Rect((int) screenXOffset - mBitmap.getWidth() / 2, (int) screenYOffset - mBitmap.getWidth() / 2, (int) screenXOffset + mBitmap.getWidth() / 2, (int) screenYOffset + mBitmap.getHeight() / 2);
+        } else {
+            float canvasTopOffset = (pdfView.pdfFile.getMaxPageHeight() - pdfView.pdfFile.getPageSize(displayedPage).getHeight()) / 2;
+            screenXOffset = poin.getWidth() * pageWidth;
+            screenYOffset = poin.getHeight() * pageHeight + canvasTopOffset * pdfView.getZoom();
+            dst = new Rect((int) screenXOffset - mBitmap.getWidth() / 2, (int) screenYOffset - mBitmap.getWidth() / 2, (int) screenXOffset + mBitmap.getWidth() / 2, (int) screenYOffset + mBitmap.getHeight() / 2);
+        }
 
-//        Rect dst = new Rect(150, 0, 170, 20);
-//        canvas.drawBitmap(mBitmap, src, dst, new Paint());
-        Rect dst1 = new Rect(-(int) (pdfView.getCurrentXOffset() /pdfView.getZoom()), -(int) (pdfView.getCurrentYOffset()/pdfView.getZoom()), -(int) (pdfView.getCurrentXOffset() /pdfView.getZoom())+20, -(int) (pdfView.getCurrentYOffset() /pdfView.getZoom())+ 20);
-        canvas.drawBitmap(mBitmap, src, dst1, new Paint());
-//        Rect dst2 = new Rect(150, (int) (canvas.getHeight() - pdfView.getFirstYoffsett() - 20), 170, (int) (int) (canvas.getHeight() - pdfView.getFirstYoffsett()));
-//        canvas.drawBitmap(mBitmap, src, dst2, new Paint());
-//        for (int i = 0; i < 1600; i++) {
-//            Rect dst2 = new Rect(0, i, 20, i + 20);
-//            canvas.drawBitmap(mBitmap, src, dst2, new Paint());
-//            i = i + 20;
-//        }
-//        for (int i = 0; i < 1600; i++) {
-//            Rect dst2 = new Rect(i, 0, i + 20, 20);
-//            canvas.drawBitmap(mBitmap, src, dst2, new Paint());
-//            i = i + 20;
-//        }
+
+        // 指定图片在屏幕上显示的区域(原图大小)
+
+
+        canvas.drawBitmap(mBitmap, src, dst, new Paint());
+
     }
 
     private void addLabelPointToHashmap(PdfLabelPoint pdfLabelPoint) {
